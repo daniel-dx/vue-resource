@@ -2,6 +2,10 @@
 
 The plugin for [Vue.js](http://vuejs.org) provides services for making web requests and handle responses using a [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) or JSONP.
 
+## Changelog: diff from origin version
+
+- Ajax request timeout will response with `ok` field which value is false, not only just abort the request and i have no idea
+
 ## Features
 
 - Supports the [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) API and [URI Templates](https://medialize.github.io/URI.js/uri-template.html)
@@ -22,9 +26,9 @@ $ bower install vue-resource
 ```
 
 ### CDN
-Available on [jsdelivr](https://cdn.jsdelivr.net/vue.resource/1.0.3/vue-resource.min.js), [cdnjs](https://cdnjs.com/libraries/vue-resource) or [unpkg](https://unpkg.com/vue-resource@1.0.3/dist/vue-resource.min.js).
+Available on [jsdelivr](https://cdn.jsdelivr.net/vue.resource/undefined/vue-resource.min.js), [cdnjs](https://cdnjs.com/libraries/vue-resource) or [unpkg](https://unpkg.com/vue-resource@undefined/dist/vue-resource.min.js).
 ```html
-<script src="https://cdn.jsdelivr.net/vue.resource/1.0.3/vue-resource.min.js"></script>
+<script src="https://cdn.jsdelivr.net/vue.resource/undefined/vue-resource.min.js"></script>
 ```
 
 ## Example

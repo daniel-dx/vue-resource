@@ -21,6 +21,11 @@ export default function (request) {
                 response.headers.append(row.slice(0, row.indexOf(':')), row.slice(row.indexOf(':') + 1));
             });
 
+            // handle timeout event
+            if (event.type === 'timeout') {
+                response.body = response.statusText = event.type;
+            }
+
             resolve(response);
         };
 
@@ -48,9 +53,10 @@ export default function (request) {
             xhr.setRequestHeader(name, value);
         });
 
-        xhr.timeout = 0;
+        xhr.timeout = request.timeout || 0;
         xhr.onload = handler;
         xhr.onerror = handler;
+        xhr.ontimeout = handler;
         xhr.send(request.getBody());
     });
 }

@@ -1,5 +1,5 @@
 /*!
- * vue-resource v1.0.3
+ * vue-resource v1.0.4
  * https://github.com/vuejs/vue-resource
  * Released under the MIT License.
  */
@@ -261,9 +261,9 @@ p.finally = function (callback) {
  * Utility functions.
  */
 
-var debug = false;var util = {};var slice = [].slice;
-
-
+var debug = false;
+var util = {};
+var slice = [].slice;
 function Util (Vue) {
     util = Vue.util;
     debug = Vue.config.debug || !Vue.config.silent;
@@ -790,7 +790,7 @@ function xdrClient (request) {
         };
 
         xdr.open(request.method, request.getUrl());
-        xdr.timeout = 0;
+        xdr.timeout = request.timeout || 0;
         xdr.onload = handler;
         xdr.onerror = handler;
         xdr.ontimeout = handler;
@@ -998,26 +998,6 @@ function header (request, next) {
 }
 
 /**
- * Timeout Interceptor.
- */
-
-function timeout (request, next) {
-
-    var timeout;
-
-    if (request.timeout) {
-        timeout = setTimeout(function () {
-            request.abort();
-        }, request.timeout);
-    }
-
-    next(function (response) {
-
-        clearTimeout(timeout);
-    });
-}
-
-/**
  * XMLHttp client.
  */
 
@@ -1035,6 +1015,11 @@ function xhrClient (request) {
             each(trim(xhr.getAllResponseHeaders()).split('\n'), function (row) {
                 response.headers.append(row.slice(0, row.indexOf(':')), row.slice(row.indexOf(':') + 1));
             });
+
+            // handle timeout event
+            if (event.type === 'timeout') {
+                response.body = response.statusText = event.type;
+            }
 
             resolve(response);
         };
@@ -1065,9 +1050,10 @@ function xhrClient (request) {
             xhr.setRequestHeader(name, value);
         });
 
-        xhr.timeout = 0;
+        xhr.timeout = request.timeout || 0;
         xhr.onload = handler;
         xhr.onerror = handler;
+        xhr.ontimeout = handler;
         xhr.send(request.getBody());
     });
 }
@@ -1139,6 +1125,119 @@ function sendRequest(request, resolve) {
 
     resolve(client(request));
 }
+
+var asyncGenerator = function () {
+  function AwaitValue(value) {
+    this.value = value;
+  }
+
+  function AsyncGenerator(gen) {
+    var front, back;
+
+    function send(key, arg) {
+      return new Promise(function (resolve, reject) {
+        var request = {
+          key: key,
+          arg: arg,
+          resolve: resolve,
+          reject: reject,
+          next: null
+        };
+
+        if (back) {
+          back = back.next = request;
+        } else {
+          front = back = request;
+          resume(key, arg);
+        }
+      });
+    }
+
+    function resume(key, arg) {
+      try {
+        var result = gen[key](arg);
+        var value = result.value;
+
+        if (value instanceof AwaitValue) {
+          Promise.resolve(value.value).then(function (arg) {
+            resume("next", arg);
+          }, function (arg) {
+            resume("throw", arg);
+          });
+        } else {
+          settle(result.done ? "return" : "normal", result.value);
+        }
+      } catch (err) {
+        settle("throw", err);
+      }
+    }
+
+    function settle(type, value) {
+      switch (type) {
+        case "return":
+          front.resolve({
+            value: value,
+            done: true
+          });
+          break;
+
+        case "throw":
+          front.reject(value);
+          break;
+
+        default:
+          front.resolve({
+            value: value,
+            done: false
+          });
+          break;
+      }
+
+      front = front.next;
+
+      if (front) {
+        resume(front.key, front.arg);
+      } else {
+        back = null;
+      }
+    }
+
+    this._invoke = send;
+
+    if (typeof gen.return !== "function") {
+      this.return = undefined;
+    }
+  }
+
+  if (typeof Symbol === "function" && Symbol.asyncIterator) {
+    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
+      return this;
+    };
+  }
+
+  AsyncGenerator.prototype.next = function (arg) {
+    return this._invoke("next", arg);
+  };
+
+  AsyncGenerator.prototype.throw = function (arg) {
+    return this._invoke("throw", arg);
+  };
+
+  AsyncGenerator.prototype.return = function (arg) {
+    return this._invoke("return", arg);
+  };
+
+  return {
+    wrap: function (fn) {
+      return function () {
+        return new AsyncGenerator(fn.apply(this, arguments));
+      };
+    },
+    await: function (value) {
+      return new AwaitValue(value);
+    }
+  };
+}();
 
 var classCallCheck = function (instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -1232,10 +1331,10 @@ function normalizeName(name) {
 
 var Response = function () {
     function Response(body, _ref) {
-        var url = _ref.url;
-        var headers = _ref.headers;
-        var status = _ref.status;
-        var statusText = _ref.statusText;
+        var url = _ref.url,
+            headers = _ref.headers,
+            status = _ref.status,
+            statusText = _ref.statusText;
         classCallCheck(this, Response);
 
 
@@ -1371,7 +1470,7 @@ Http.headers = {
     common: COMMON_HEADERS
 };
 
-Http.interceptors = [before, timeout, method, body, jsonp, header, cors];
+Http.interceptors = [before, method, body, jsonp, header, cors];
 
 ['get', 'delete', 'head', 'jsonp'].forEach(function (method) {
 

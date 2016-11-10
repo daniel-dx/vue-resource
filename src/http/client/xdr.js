@@ -23,7 +23,7 @@ export default function (request) {
         request.abort = () => xdr.abort();
 
         xdr.open(request.method, request.getUrl());
-        xdr.timeout = 0;
+        xdr.timeout = request.timeout || 0;
         xdr.onload = handler;
         xdr.onerror = handler;
         xdr.ontimeout = handler;
