@@ -6,6 +6,8 @@ The plugin for [Vue.js](http://vuejs.org) provides services for making web reque
 
 - Ajax request timeout will response with `ok` field which value is false, not only just abort the request and i have no idea
 
+- JSONP request add timeout error type
+
 ## Features
 
 - Supports the [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) API and [URI Templates](https://medialize.github.io/URI.js/uri-template.html)

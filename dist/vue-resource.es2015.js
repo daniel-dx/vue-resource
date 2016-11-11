@@ -1,5 +1,5 @@
 /*!
- * vue-resource v1.0.4
+ * vue-resource v1.0.5
  * https://github.com/vuejs/vue-resource
  * Released under the MIT License.
  */
@@ -890,11 +890,18 @@ function jsonpClient (request) {
             callback = '_jsonp' + Math.random().toString(36).substr(2),
             body = null,
             handler,
-            script;
+            script,
+            timeout;
 
-        handler = function (_ref) {
-            var type = _ref.type;
+        handler = function (_ref2) {
+            var type = _ref2.type;
 
+
+            if (timeout) {
+                // clear timeout when request response in time
+                timeout = null;
+                clearTimeout(timeout);
+            }
 
             var status = 0;
 
@@ -902,9 +909,11 @@ function jsonpClient (request) {
                 status = 200;
             } else if (type === 'error') {
                 status = 500;
+            } else if (type === 'timeout') {
+                body = '{"statusText": "timeout"}';
             }
 
-            resolve(request.respondWith(body, { status: status }));
+            resolve(request.respondWith(body || '{}', { status: status })); // TODO xhr和jsonp请求超时返回的响应内容不一置
 
             delete window[callback];
             document.body.removeChild(script);
@@ -922,6 +931,16 @@ function jsonpClient (request) {
         script.async = true;
         script.onload = handler;
         script.onerror = handler;
+        if (request.timeout) {
+            timeout = setTimeout(function () {
+                // timeout, mark it
+                script.onload = script.onerror = function (_ref) {
+                    var ref = { type: 'timeout' };
+                    handler(ref);
+                };
+                clearTimeout(timeout);
+            }, request.timeout);
+        }
 
         document.body.appendChild(script);
     });
