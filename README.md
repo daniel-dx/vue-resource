@@ -8,6 +8,8 @@ The plugin for [Vue.js](http://vuejs.org) provides services for making web reque
 
 - JSONP request add timeout error type
 
+- change JSONP default callback name from `callback` to `jsonp`, as wechat not support `callback` name
+
 ## Features
 
 - Supports the [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) API and [URI Templates](https://medialize.github.io/URI.js/uri-template.html)
