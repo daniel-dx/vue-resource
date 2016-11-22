@@ -888,7 +888,7 @@ function body (request, next) {
 function jsonpClient (request) {
     return new PromiseObj(function (resolve) {
 
-        var name = request.jsonp || 'callback',
+        var name = request.jsonp || 'jsonp',
             callback = '_jsonp' + Math.random().toString(36).substr(2),
             body = null,
             handler,
